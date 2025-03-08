@@ -5,7 +5,6 @@ const UserSchema = new mongoose.Schema({
     _id: {
         type: String,
         default: uuidv4,
-        unique: true
         },
     name: {
         type: String,

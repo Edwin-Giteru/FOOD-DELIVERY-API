@@ -4,7 +4,7 @@ import { DB_URI, NODE_ENV } from "../config/env.js";
 if(!DB_URI) {
     throw new Error("DB_URI not defined in environment variables");
 }
-const connectToDatabase = async () => {
+const ToDatabase = async () => {
     try {
         await mongoose.connect(DB_URI);
 
@@ -14,4 +14,4 @@ const connectToDatabase = async () => {
     }
 };
 
-export default connectToDatabase;
+export default ToDatabase;
