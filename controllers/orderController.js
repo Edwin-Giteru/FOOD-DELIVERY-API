@@ -16,7 +16,6 @@ export const placeOrder = async (req, res, next) => {
                 user_id,
                 restaurant_id,
                 items: [{ item_menu_id: menu_id, quantity }],
-                order_status: 'pending',
                 total_price: foodItem.price * quantity,
             });
             await restaurant.save();
