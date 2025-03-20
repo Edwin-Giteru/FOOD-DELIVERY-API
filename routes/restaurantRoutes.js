@@ -8,7 +8,9 @@ restaurantRouter.get("/", restaurantController.getAllRestaurants);
 restaurantRouter.get("/:id", restaurantController.getRestaurantById);
 restaurantRouter.put("/:id", restaurantController.updateRestaurant);
 restaurantRouter.delete("/:id", restaurantController.deleteRestaurant);
-restaurantRouter.put("/:id", restaurantController.updateRestaurantMenu);
-restaurantRouter.delete("/:id", restaurantController.deleteItemFromMenu);
+restaurantRouter.patch("/:id/menu", restaurantController.updateRestaurantMenu);
+restaurantRouter.delete("/:id/menu", restaurantController.deleteItemFromMenu);
+restaurantRouter.post("/:id/menu", restaurantController.addMenuToRestaurant);
+restaurantRouter.get("/:id/all", restaurantController.RestaurantMenu);
 
 export default restaurantRouter;

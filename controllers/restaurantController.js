@@ -1,5 +1,6 @@
 import Restaurant from "../models/restraunts.models.js";
 import mongoose from "mongoose";
+import Menu from "../models/menu.model.js";
 
 export const addRestaurant = async (req, res, next) => {
     const session = await mongoose.startSession();
@@ -13,7 +14,7 @@ export const addRestaurant = async (req, res, next) => {
             error.statusCode = 409;
             throw error;
         }
-        const newRestaurant = await new Restaurant.create({ name: name, phone_number: phone_number, address: address});
+        const newRestaurant = await Restaurant.create({ name: name, phone_number: phone_number, address: address});
         res.status(201).json({
             success: true,
             data: newRestaurant
@@ -40,7 +41,7 @@ export const getAllRestaurants = async (req, res, next) => {
 
 export const RestaurantMenu = async (req, res, next) => {
     try {
-        const menu = req.body
+        const [menu] = req.body
         const restaurant_id = req.params.id;
         const  restaurant = await Restaurant.findById(restaurant_id, {menu: menu});
         if (!restaurant) {
@@ -55,12 +56,36 @@ export const RestaurantMenu = async (req, res, next) => {
 export const updateRestaurantMenu = async (req, res, next) => {
     try {
         const menu = req.body;
-        const restaurant_id = req.params.id;
-        const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id, {menu: menu}, {new: true});
-        if (!restaurant) {
-            res.status(404).json({error: "Restaurant not  Found"})
+        const restaurant_id = req.params.id; 
+        
+        if (!Array.isArray(menu)) {
+            return res.status(400).json({ error: "Menu must be an array" });
         }
-        res.status(200).json({success: true, data: restaurant});
+
+        const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id);
+
+        if (!restaurant) {
+            res.status(404).json({error: "Restaurant not found"})
+        };
+        const updatedMenuIds = [];
+
+        for (const item of menu) {
+            if (item._id) {
+                const updatedItem = await Menu.findByIdAndUpdate(item._id, item, {new: true});
+
+                if (updatedItem) {
+                    updatedMenuIds.push(updatedItem._id);
+                } else {
+                    const newItem = await Menu.create({...item, restaurant_id});
+                    updatedMenuIds.push(newItem._id);
+                }
+            };
+        }
+        restaurant.menu = updatedMenuIds;
+        await restaurant.save();
+
+        return restaurant.status(200).json({success: true, data: "Menu updated successfully"});
+       
     } catch (error) {
         next(error);
     }
@@ -123,16 +148,30 @@ export const updateRestaurant = async (req, res, next) => {
 }
 
 
-export const addItemToMenu = async (req, res, next) => {
+export const addMenuToRestaurant = async (req, res) => {
     try{
-        const restraunt_id = req.params.id;
-        const { name, price, description } = req.body;
-        const restaurant = await Restaurant.findByIdAndUpdate(restraunt_id, { $push: { menu: { name, price, description } } }, { new: true });
+        const restaurant_id = req.params.id;
+        const { name, price, description, image_url } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(restaurant_id)) {
+            return res.status(400).json({ success: false, message: "Invalid Restaurant Id" });
+        }
+        const restaurant = await Restaurant.findById(restaurant_id);
         if (!restaurant) {
             return res.status(404).json({ success: false, message: "Restaurant not found" });
         }
-        res.status(200).json({ success: true, data: restaurant });
+
+        const menuItem = await Menu.create({
+            restaurant_id: restaurant_id,
+            name,
+            price,
+            description,
+            image_url,
+        });
+
+        restaurant.menu.push(menuItem._id);
+        await restaurant.save();
+        return res.status(201).json({ success: true, data: menuItem , message: "Menu added successfully" });
     } catch (error) {
-        next(error);
+        res.status(500).json({ error: error.message});
     }
 }

@@ -1,12 +1,7 @@
 import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 const orderSchema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: uuidv4,
-        unique: true,
-    },
+
     user_id: {
         type: String,
         required: true,

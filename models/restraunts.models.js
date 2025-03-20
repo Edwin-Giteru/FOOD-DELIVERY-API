@@ -1,13 +1,7 @@
 import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
-const RestrauntsSChema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: uuidv4,
-        unique: true,
-    },
-    name: {
+const RestaurantSchema = new mongoose.Schema({
+     name: {
         type: String,
         required: true,
         minLength: 3,
@@ -24,15 +18,16 @@ const RestrauntsSChema = new mongoose.Schema({
         minLength: 10,
         maxLength: 200,
     },
-    menu: {
-        type: String,
+    menu: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Menu",
-    },
+    }
+    ],
     created_at: {
         type: Date,
         default: Date.now,
     }
 });
 
-const Restaurant = mongoose.model("Restaurant", RestrauntsSChema);
-export default Restaurant;
+const Restraunt = mongoose.model("Restaurant", RestaurantSchema);
+export default Restraunt;

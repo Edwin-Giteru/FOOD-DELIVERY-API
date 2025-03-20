@@ -1,13 +1,8 @@
 import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
+
 
 const cartSChema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: uuidv4,
-        unique: true,
-    },
-    user_id: {
+     user_id: {
         type: String,
         required: true,
         ref: "User",
