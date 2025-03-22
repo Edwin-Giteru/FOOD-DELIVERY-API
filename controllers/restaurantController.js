@@ -41,7 +41,7 @@ export const getAllRestaurants = async (req, res, next) => {
 
 export const RestaurantMenu = async (req, res, next) => {
     try {
-        const [menu] = req.body
+        const [menu] = req.body;
         const restaurant_id = req.params.id;
         const  restaurant = await Restaurant.findById(restaurant_id, {menu: menu});
         if (!restaurant) {
@@ -55,7 +55,7 @@ export const RestaurantMenu = async (req, res, next) => {
 
 export const updateRestaurantMenu = async (req, res, next) => {
     try {
-        const menu = req.body;
+        const [menu] = req.body;
         const restaurant_id = req.params.id; 
         
         if (!Array.isArray(menu)) {
