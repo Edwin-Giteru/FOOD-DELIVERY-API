@@ -10,7 +10,7 @@ const ToDatabase = async () => {
 
         console.log(`Connected to database in ${NODE_ENV} mode.`);
     } catch (error) {
-        console.error("Error conneccting to database:", error);
+        console.error("Error connecting to database:", error);
     }
 };
 
