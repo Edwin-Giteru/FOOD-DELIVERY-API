@@ -6,7 +6,7 @@ import authRouter from "./routes/authRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import restaurantRouter from "./routes/restaurantRoutes.js";
 import session from "express-session";
-import passport from "passport";
+import passport from "./config/passport.js";
 
 const app = express();
 
@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/v1/orders", orderRouter);
-app.use("/api/v1/auth", authRouter);
+app.use("/auth", authRouter);
 app.use("/api/v1/restaurants", restaurantRouter);
 
 
