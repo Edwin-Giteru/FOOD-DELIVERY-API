@@ -1,5 +1,5 @@
 import passport from "passport";
-import GoogleStrategy from "passport-google-oauth20";
+import{ Strategy as GoogleStrategy} from "passport-google-oauth20";
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL } from "./env.js";
 import User from "../models/users.model.js";
 
@@ -9,6 +9,7 @@ passport.use(
             clientID: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_CLIENT_SECRET,
             callbackURL: GOOGLE_CALLBACK_URL,
+        
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
@@ -20,7 +21,11 @@ passport.use(
                         googleId: profile.id,
                         name: profile.displayName, 
                         email: profile.emails[0].value, 
-                        avatar: profile.photos[0].value 
+                        avatar: profile.photos[0].value,
+                        password: "google-auth", 
+                        phone_number: "0000000000", 
+                        refresh_token: refreshToken
+
                     });
 
                     await user.save();
