@@ -41,17 +41,20 @@ export const getAllRestaurants = async (req, res, next) => {
 
 export const RestaurantMenu = async (req, res, next) => {
     try {
-        const [menu] = req.body;
         const restaurant_id = req.params.id;
-        const  restaurant = await Restaurant.findById(restaurant_id, {menu: menu});
+        const restaurant = await Restaurant.findById(restaurant_id).populate("menu");
+
         if (!restaurant) {
-            res.status(404).json({error: 'Not Found'});
+            return res.status(404).json({ error: "Restaurant not found" });
         }
-        res.status(200).json({ success: true, data: restaurant });
+
+        return res.status(200).json({ success: true, data: restaurant.menu });
     } catch (error) {
+        console.error("🔥 Error fetching menu:", error);
         next(error);
     }
-}
+};
+
 
 export const updateRestaurantMenu = async (req, res, next) => {
     try {
@@ -69,18 +72,14 @@ export const updateRestaurantMenu = async (req, res, next) => {
         };
         const updatedMenuIds = [];
 
-        for (const item of menu) {
-            if (item._id) {
-                const updatedItem = await Menu.findByIdAndUpdate(item._id, item, {new: true});
-
-                if (updatedItem) {
-                    updatedMenuIds.push(updatedItem._id);
-                } else {
-                    const newItem = await Menu.create({...item, restaurant_id});
-                    updatedMenuIds.push(newItem._id);
-                }
-            };
+        for (const itemId of menu) {
+            // Check if itemId is a valid MongoDB ObjectId
+            if (!mongoose.Types.ObjectId.isValid(itemId)) {
+                return res.status(400).json({ error: `Invalid menu item ID: ${itemId}` });
+            }
+            updatedMenuIds.push(itemId);
         }
+        
         restaurant.menu = updatedMenuIds;
         await restaurant.save();
 
