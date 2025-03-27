@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import {  JWT_SECRET_KEY, REFRESH_TOKEN_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '../config/env.js';
+import {  JWT_SECRET_KEY, REFRESH_TOKEN_KEY,/* GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET*/ } from '../config/env.js';
 import jwt from "jsonwebtoken";
 import User from '../models/users.model.js';
-import axios from "axios";
+// import axios from "axios";
 
 
 export const SignUp = async (req, res, next) => {
@@ -128,61 +128,63 @@ export const SignIn = async (req, res, next) => {
         }
     };
     
-export const GoogleAuth = (req, res) => {
-    const redirectUri = "http://localhost:5000/google/callback";  // Must match Google Cloud Console
-    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=email profile&access_type=offline`;
-    res.redirect(authUrl);
-}
-export const GoogleCallback = async (req, res) => {
-    try {
-        const { code } = req.query;
-        if (!code) {
-            return res.status(400).json({ error: "Authorization code not found" });
-        }
+// export const GoogleAuth = (req, res) => {
+//     const redirectUri = "http://localhost:5000/auth/google/callback";  // Must match Google Cloud Console
+//     const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=email profile&access_type=offline`;
+//     res.redirect(authUrl);
+// }
+// export const GoogleCallback = async (req, res) => {
+//     try {
+//         const { code } = req.query;
+//         if (!code) {
+//             return res.status(400).json({ error: "Authorization code not found" });
+//         }
 
-        // Exchange authorization code for access token
-        const { data } = await axios.post("https://oauth2.googleapis.com/token", {
-            client_id: GOOGLE_CLIENT_ID,
-            client_secret: GOOGLE_CLIENT_SECRET,
-            redirect_uri: "http://localhost:5000/auth/google/callback",
-            grant_type: "authorization_code",
-            code
-        });
+//         // Exchange authorization code for access token
+//         const { data } = await axios.post("https://oauth2.googleapis.com/token", {
+//             client_id: GOOGLE_CLIENT_ID,
+//             client_secret: GOOGLE_CLIENT_SECRET,
+//             redirect_uri: "http://localhost:5000/auth/google/callback",
+//             grant_type: "authorization_code",
+//             code
+//         }, { headers: {"Content-Type": "application/x-www-form-urlencoded"}});
 
-        const { access_token, id_token } = data;
+//         const { access_token, id_token } = data;
 
-        // Decode Google User Info
-        const googleUser = jwt.decode(id_token);
-        if (!googleUser) {
-            return res.status(400).json({ error: "Invalid Google token" });
-        }
+//         // Decode Google User Info
+//         const googleUser = jwt.decode(id_token);
+//         if (!googleUser) {
+//             return res.status(400).json({ error: "Invalid Google token" });
+//         }
 
-        // Check if User Exists
-        let user = await User.findOne({ email: googleUser.email });
+//         // Check if User Exists
+//         let user = await User.findOne({ email: googleUser.email });
 
-        if (!user) {
-            user = await User.create({
-                name: googleUser.name,
-                email: googleUser.email,
-                password: "google-auth",  // Placeholder password
-                phone_number: "0000000000", // Default phone number
-                refresh_token: access_token
-            });
-        }
+//         if (!user) {
+//             user = await User.create({
+//                 name: googleUser.name,
+//                 email: googleUser.email,
+//                 password: "google-auth",  // Placeholder password
+//                 phone_number: "0000000000", // Default phone number
+//                 refresh_token: access_token
+//             });
+//         }
 
-        // Generate JWT Access Token
-        const jwtToken = jwt.sign({ userId: user._id }, JWT_SECRET_KEY, { expiresIn: "1h" });
+//         // Generate JWT Access Token
+//         const jwtToken = jwt.sign({ userId: user._id }, JWT_SECRET_KEY, { expiresIn: "1h" });
 
-        res.status(200).json({
-            success: true,
-            data: {
-                accessToken: jwtToken,
-                user
-            }
-        });
+//         res.status(200).json({
+//             success: true,
+//             data: {
+//                 accessToken: jwtToken,
+//                 user
+//             }
+//         });
 
-    } catch (error) {
-        console.error("Google OAuth Error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-};
+//     } catch (error) {
+//         console.error("Google OAuth Error:", error);
+//         if (!res.headerSent) {
+//             return res.status(500).json({ error: "Internal Server Error" });
+//         }
+//     }
+// };
