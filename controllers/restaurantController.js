@@ -64,26 +64,27 @@ export const updateRestaurantMenu = async (req, res, next) => {
         if (!Array.isArray(menu)) {
             return res.status(400).json({ error: "Menu must be an array" });
         }
-
-        const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id);
-
-        if (!restaurant) {
-            res.status(404).json({error: "Restaurant not found"})
-        };
-        const updatedMenuIds = [];
-
+        
+        const validMenuItem = [];
         for (const itemId of menu) {
             // Check if itemId is a valid MongoDB ObjectId
             if (!mongoose.Types.ObjectId.isValid(itemId)) {
                 return res.status(400).json({ error: `Invalid menu item ID: ${itemId}` });
-            }
-            updatedMenuIds.push(itemId);
+            } 
+            const MenuItem = await Menu.findById(itemId);
+            if (MenuItem) {
+                validMenuItem.push(MenuItem);
+            }          
+        }   
+        if (validMenuItem.length < 0) {
+            return res.status(400).json({ error: "No valid menu items found" });
         }
-        
-        restaurant.menu = updatedMenuIds;
-        await restaurant.save();
+        const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id, {menu: menu}, {new: true}).populate("menu");
 
-        return restaurant.status(200).json({success: true, data: "Menu updated successfully"});
+        if (!restaurant) {
+            res.status(404).json({error: "Restaurant not found"})
+        };     
+        return res.status(200).json({success: true, data: "Menu updated successfully"});
        
     } catch (error) {
         next(error);

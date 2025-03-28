@@ -1,27 +1,30 @@
-import User from "../models/users.model";
+import User from "../models/users.model.js";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET_KEY } from "../config/env";
+import { JWT_SECRET_KEY } from "../config/env.js";
 
-const authorize = async (req, res, next) => {
-    try{
-        let token;
-        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-            token = req.headers.authorization.split(" ")[1];
-        }
+
+export const authorize = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1]; // Extract token from headers
+
         if (!token) {
-            res.status(401).json({ error: "Token is required" });
+            return res.status(401).json({ error: "Unauthorized, token required" });
         }
+
         const decoded = jwt.verify(token, JWT_SECRET_KEY);
-     
-        const user = await User.findById(decoded.userId);
+        const user = await User.findById(decoded.id);
+
         if (!user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(404).json({ error: "User not found" });
         }
-        req.user = user;
-        next()
-   
+
+        if (user.role !== "admin") {
+            return res.status(403).json({ error: "Access denied, admin only" });
+        }
+
+        req.user = user; // Attach user data to request
+        next(); // Proceed to the next middleware or route
     } catch (error) {
-        res.status(401).json({ message : "Invalid token",  error: error.message  });
+        res.status(401).json({ error: "Invalid token", message: error.message });
     }
-} 
-export default authorize;
+};

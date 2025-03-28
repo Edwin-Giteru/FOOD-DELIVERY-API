@@ -15,6 +15,7 @@ passport.use(
             try {
                 
                 let user = await User.findOne({ googleId: profile.id });
+                const phone_number = Math.random() * 10;
                 
                 if (!user) {              
                     user = await User.create({ 
@@ -23,7 +24,7 @@ passport.use(
                         email: profile.emails[0].value, 
                         avatar: profile.photos[0].value,
                         password: "google-auth", 
-                        phone_number: "0000000000", 
+                        phone_number: phone_number, 
                         refresh_token: refreshToken
 
                     });

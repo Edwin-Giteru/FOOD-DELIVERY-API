@@ -7,6 +7,7 @@ import orderRouter from "./routes/orderRoutes.js";
 import restaurantRouter from "./routes/restaurantRoutes.js";
 import session from "express-session";
 import passport from "./config/passport.js";
+import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 app.use("/api/v1/orders", orderRouter);
 app.use("/auth", authRouter);
 app.use("/api/v1/restaurants", restaurantRouter);
+app.use("/api/v1/users", userRouter);
 
 
 app.listen(PORT, async () => {
