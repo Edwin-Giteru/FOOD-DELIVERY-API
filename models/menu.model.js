@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
 
-const MenuSchema = new mongoose.Schema({
-    restaurant_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: "Restaurant",
-    },
+const MenuItemSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -31,5 +26,18 @@ const MenuSchema = new mongoose.Schema({
         default: Date.now,
     }
 });
+
+const MenuSchema = new mongoose.Schema({
+    restaurant_id: {
+        type: mongoose.Types.ObjectId,
+        required: true,
+        ref: "Restaurant",
+    },
+    menu_items: {
+        type: [MenuItemSchema], // Array of objects with the characteristics defined in MenuItemSchema
+        required: true,
+    },
+});
+
 const Menu = mongoose.model("Menu", MenuSchema);
-export  default Menu;
+export default Menu;

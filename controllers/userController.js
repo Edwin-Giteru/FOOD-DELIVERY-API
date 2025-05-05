@@ -1,6 +1,8 @@
 import User from "../models/users.model.js";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { JWT_SECRET_KEY } from "../config/env.js";
 
 /**
  * NAME
@@ -11,9 +13,9 @@ import bcrypt from "bcryptjs";
  *  */
 
 export const createAdmin = async (req, res, next) => {
-    try {
-        const session = await mongoose.startSession();
-        session.startTransaction();
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {        
         const { email, password, phone_number, role } = req.body;
         const user = await User.findOne({ email });
         if (user) {
@@ -30,8 +32,19 @@ export const createAdmin = async (req, res, next) => {
             phone_number,
             role
         }], { session });
+
+        const accessToken = jwt.sign({ userId: adminUser._id }, JWT_SECRET_KEY, { expiresIn: "1h" });
+
+        await adminUser[0].save();
+        res.status(201).json({ 
+            success: true, 
+            data: adminUser,
+                  accessToken
+            });
         await session.commitTransaction();
     }catch (error) {
+        session.abortTransaction();
+        session.endSession();
         next(error);
     }
 }

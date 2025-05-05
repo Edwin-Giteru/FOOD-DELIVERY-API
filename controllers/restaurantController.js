@@ -2,19 +2,26 @@ import Restaurant from "../models/restraunts.models.js";
 import mongoose from "mongoose";
 import Menu from "../models/menu.model.js";
 
+// creating a new restaurant should be role based, only admin can create a restaurant
+
 export const addRestaurant = async (req, res, next) => {
+
     const session = await mongoose.startSession();
     session.startTransaction();
-
+    
     try{
         const { name, phone_number, address} = req.body;
-        const existingRestaurant = await Restaurant.findOne({ name: name, phone_number: phone_number, address: address});
+        const existingRestaurant = await Restaurant.findOne({ name: name, address: address});
         if (existingRestaurant) {
             const error = new Error("Restaurant already exists");
             error.statusCode = 409;
             throw error;
         }
-        const newRestaurant = await Restaurant.create({ name: name, phone_number: phone_number, address: address});
+        const newRestaurant = await Restaurant.create({ 
+            name: name, 
+            phone_number: phone_number,
+            address: address});
+
         res.status(201).json({
             success: true,
             data: newRestaurant
@@ -56,40 +63,95 @@ export const RestaurantMenu = async (req, res, next) => {
 };
 
 
+// export const updateRestaurantMenu = async (req, res, next) => {
+//     try {
+//         const {menu} = req.body;
+//         const restaurant_id = req.params.id; 
+        
+//         if (!Array.isArray(menu)) {
+//             return res.status(400).json({ error: "Menu must be an array" });
+//         }
+        
+//         const validMenuItem = [];
+//         for (const itemId of menu) {
+//             // Check if itemId is a valid MongoDB ObjectId
+//             if (!mongoose.Types.ObjectId.isValid(itemId)) {
+//                 return res.status(400).json({ error: `Invalid menu item ID: ${itemId}` });
+//             } 
+//             const MenuItem = await Menu.findById(itemId);
+//             if (MenuItem) {
+//                 validMenuItem.push(MenuItem);
+//             }          
+//         }   
+//         if (validMenuItem.length < 0) {
+//             return res.status(400).json({ error: "No valid menu items found" });
+//         }
+//         const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id, {menu: menu}, {new: true}).populate("menu");
+
+//         if (!restaurant) {
+//             res.status(404).json({error: "Restaurant not found"})
+//         };     
+//         return res.status(200).json({success: true, data: "Menu updated successfully"});
+       
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
 export const updateRestaurantMenu = async (req, res, next) => {
     try {
-        const {menu} = req.body;
-        const restaurant_id = req.params.id; 
-        
-        if (!Array.isArray(menu)) {
-            return res.status(400).json({ error: "Menu must be an array" });
-        }
-        
-        const validMenuItem = [];
-        for (const itemId of menu) {
-            // Check if itemId is a valid MongoDB ObjectId
-            if (!mongoose.Types.ObjectId.isValid(itemId)) {
-                return res.status(400).json({ error: `Invalid menu item ID: ${itemId}` });
-            } 
-            const MenuItem = await Menu.findById(itemId);
-            if (MenuItem) {
-                validMenuItem.push(MenuItem);
-            }          
-        }   
-        if (validMenuItem.length < 0) {
-            return res.status(400).json({ error: "No valid menu items found" });
-        }
-        const restaurant = await Restaurant.findByIdAndUpdate(restaurant_id, {menu: menu}, {new: true}).populate("menu");
+        const { menu } = req.body; // Expecting an array of menu objects
+        const restaurant_id = req.params.id;
 
-        if (!restaurant) {
-            res.status(404).json({error: "Restaurant not found"})
-        };     
-        return res.status(200).json({success: true, data: "Menu updated successfully"});
-       
+        if (!Array.isArray(menu)) {
+            return res.status(400).json({ error: "Menu must be an array of objects" });
+        }
+
+        // Validate each menu item
+        let validMenuItems = [];
+        for (const item of menu) {
+            const { name, description, price, image_url } = item;
+
+            if (!name || name.length < 3 || name.length > 100) {
+                return res.status(400).json({ error: "Each menu item must have a valid name between (3-100 characters)" });
+            }
+            if (!description || description.length < 10 || description.length > 500) {
+                return res.status(400).json({ error: "Each menu item must have a valid description between (10-500 characters)" });
+            }
+            if (typeof price !== "number" || price < 0) {
+                return res.status(400).json({ error: "Each menu item must have a valid price (non-negative number)" });
+            }
+
+            validMenuItems.push({
+                name,
+                description,
+                price,
+                image_url,
+            });
+        }
+
+        // Find the menu for the restaurant
+        let menuDocument = await Menu.findOne({ restaurant_id });
+
+        if (!menuDocument) {
+            // If no menu exists for the restaurant, create a new one
+            menuDocument = new Menu({
+                restaurant_id,
+                menu_items: validMenuItems,
+            });
+        } else {
+            // Update the existing menu
+            menuDocument.menu_items = validMenuItems;
+        }
+
+        // Save the menu document
+        await menuDocument.save();
+
+        return res.status(200).json({ success: true, data: menuDocument });
     } catch (error) {
         next(error);
     }
-}
+};
 
 export const deleteRestaurant = async (req, res, next) => {
     try {

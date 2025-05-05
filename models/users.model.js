@@ -18,9 +18,16 @@ const UserSchema = new mongoose.Schema({
         required: true,
         minLength: 8,
     },
+    //validate number to start with 254
     phone_number: {
-        type: String,
+        type: Number,
         required: true,
+        validate: {
+            validator: function(v) {
+                return /^254\d{9}$/.test(v);
+            },
+            message: props => `${props.value} should start with 254!`
+        },
         unique: true,   
     },
     role: {

@@ -9,7 +9,7 @@ const RestaurantSchema = new mongoose.Schema({
     },
     phone_number: {
         type: String,
-        // required: true,
+        required: true,
         unique: true,
     },
     address: {
